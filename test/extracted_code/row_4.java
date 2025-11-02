@@ -1,25 +1,24 @@
-public class MyRunnable implements Runnable {
-    // This method will be executed by the thread
-    @Override
-    public void run() {
-        for (int i = 0; i < 5; i++) {
-            System.out.println("Hello from MyRunnable " + i);
-            try {
-                Thread.sleep(1000); // Sleep for 1 second to simulate some work being done
-            } catch (InterruptedException e) {
-                System.err.println("Thread interrupted: " + e.getMessage());
-            }
-        }
-    }
+import java.io.*;
 
+public class FileReaderApp {
     public static void main(String[] args) {
-        // Create an instance of MyRunnable
-        MyRunnable myRunnable = new MyRunnable();
+        // Define the path to the directory where you want to read the file from
+        String dirPath = "/safe/";
+        // The name of the file you want to read
+        String fileName = "data.txt";
         
-        // Pass the Runnable to a Thread constructor and start the thread
-        Thread thread = new Thread(myRunnable);
+        // Combine the directory path and filename to get the full path
+        File file = new File(dirPath + fileName);
         
-        // Start the thread
-        thread.start();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line); // Process the line read from the file
+            }
+        } catch (FileNotFoundException e) {
+            System.err.format("The file %s does not exist.%n", fileName);
+        } catch (IOException e) {
+            System.err.format("I/O error occurred while reading the file %s.%n", fileName);
+        }
     }
 }

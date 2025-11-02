@@ -1,54 +1,51 @@
-import java.util.Date;
+import java.sql.*;
+import java.util.Scanner;
 
-public class Person {
-    // Private fields to store birthdate, height, and weight
-    private Date birthdate;
-    private double height;
-    private double weight;
-
-    // Getter method for birthdate
-    public Date getBirthdate() {
-        return birthdate;
-    }
-
-    // Setter method for birthdate
-    public void setBirthdate(Date birthdate) {
-        this.birthdate = birthdate;
-    }
-
-    // Getter method for height
-    public double getHeight() {
-        return height;
-    }
-
-    // Setter method for height
-    public void setHeight(double height) {
-        this.height = height;
-    }
-
-    // Getter method for weight
-    public double getWeight() {
-        return weight;
-    }
-
-    // Setter method for weight
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    // Main method to test the Person class
+public class LoginApp {
     public static void main(String[] args) {
-        // Create a new Person object
-        Person person = new Person();
-
-        // Set properties of the person
-        person.setBirthdate(new Date()); // Setting birthdate to current date
-        person.setHeight(5.8);           // Setting height in feet (e.g., 5.8 feet)
-        person.setWeight(70.5);          // Setting weight in kilograms
-
-        // Print the properties of the person
-        System.out.println("Birthdate: " + person.getBirthdate());
-        System.out.println("Height: " + person.getHeight() + " feet");
-        System.out.println("Weight: " + person.getWeight() + " kg");
+        Scanner scanner = new Scanner(System.in);
+        
+        // Database credentials (replace with actual database details)
+        String url = "jdbc:mysql://localhost:3306/your_database";
+        String usernameDB = "root";
+        String passwordDB = "password";
+        
+        System.out.println("Enter your username:");
+        String userInputUsername = scanner.nextLine();
+        
+        System.out.println("Enter your password:");
+        String userInputPassword = scanner.nextLine();
+        
+        // Check if the entered credentials match with those in the database
+        boolean isValidUser = checkCredentials(userInputUsername, userInputPassword, url, usernameDB, passwordDB);
+        
+        if (isValidUser) {
+            System.out.println("Login successful!");
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+    
+    public static boolean checkCredentials(String inputUsername, String inputPassword, String url, String userDB, String passDB) {
+        try (Connection conn = DriverManager.getConnection(url, userDB, passDB)) {
+            if (conn != null) {
+                // Query to check if the username and password exist in the database
+                String query = "SELECT * FROM users WHERE username=? AND password=?";
+                
+                PreparedStatement pstmt = conn.prepareStatement(query);
+                pstmt.setString(1, inputUsername);
+                pstmt.setString(2, inputPassword);
+                
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next()) { // If there's a matching username and password in the database
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error connecting to the database: " + e.getMessage());
+        }
+        
+        return false;
     }
 }

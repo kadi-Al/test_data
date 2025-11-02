@@ -1,137 +1,109 @@
-import java.util.ArrayList;
-import java.util.List;
+properties
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database
+spring.datasource.username=your_user
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=update
+# Enable logging to see SQL queries in the console
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+package com.example.demo.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
-    private String userID;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
     private String username;
-    private String email;
-    private List<Post> posts;
-    private List<User> followers;
 
-    public User(String userID, String username, String email) {
-        this.userID = userID;
-        this.username = username;
-        this.email = email;
-        this.posts = new ArrayList<>();
-        this.followers = new ArrayList<>();
-    }
+    @Column(nullable = false)
+    private String password;
 
-    // Methods to follow/unfollow another User and create/delete a post are omitted for brevity
-
-    public void follow(User user) {
-        if (!followers.contains(user)) {
-            followers.add(user);
-        }
-    }
-
-    public void unfollow(User user) {
-        followers.remove(user);
-    }
-
-    // Getters and setters omitted for brevity
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }
-import java.util.ArrayList;
-import java.util.List;
+package com.example.demo.repository;
 
-public class Post {
-    private String postID;
-    private String content;
-    private long timePosted;
-    private String userID;
-    private List<String> likes;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.example.demo.model.User;
 
-    public Post(String postID, String content, long timePosted, String userID) {
-        this.postID = postID;
-        this.content = content;
-        this.timePosted = timePosted;
-        this.userID = userID;
-        this.likes = new ArrayList<>();
-    }
-
-    public void like(String userID) {
-        if (!likes.contains(userID)) {
-            likes.add(userID);
-        }
-    }
-
-    public void dislike(String userID) {
-        likes.remove(userID);
-    }
-
-    // Getters and setters omitted for brevity
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
 }
-sql
-CREATE TABLE Users (
-    userID VARCHAR(255) PRIMARY KEY,
-    username VARCHAR(255),
-    email VARCHAR(255)
-);
+package com.example.demo.service;
 
-CREATE TABLE Posts (
-    postID VARCHAR(255) PRIMARY KEY,
-    content TEXT,
-    timePosted BIGINT,
-    userID VARCHAR(255),
-    FOREIGN KEY (userID) REFERENCES Users(userID)
-);
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.example.demo.model.User;
+import com.example.demo.repository.UserRepository;
 
-CREATE TABLE Likes (
-    userID VARCHAR(255),
-    postID VARCHAR(255),
-    PRIMARY KEY (userID, postID),
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (postID) REFERENCES Posts(postID)
-);
-import java.sql.*;
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
 
-public class User {
-    // Existing methods...
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public void save(Connection conn) throws SQLException {
-        String query = "INSERT INTO Users (userID, username, email) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, userID);
-            stmt.setString(2, username);
-            stmt.setString(3, email);
-            stmt.executeUpdate();
-        }
+    public void register(String username, String password) {
+        User user = new User();
+        user.setUsername(username);
+        // Hash the password before setting it
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
     }
-
-    public void follow(Connection conn, User user) throws SQLException {
-        String query = "INSERT INTO Follows (followerUserID, followingUserID) VALUES (?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, this.userID);
-            stmt.setString(2, user.getUserID());
-            stmt.executeUpdate();
-        }
-    }
-
-    // Existing methods...
 }
-import java.sql.*;
+package com.example.demo.controller;
 
-public class Post {
-    // Existing methods...
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.service.UserService;
 
-    public void save(Connection conn) throws SQLException {
-        String query = "INSERT INTO Posts (postID, content, timePosted, userID) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, postID);
-            stmt.setString(2, content);
-            stmt.setLong(3, timePosted);
-            stmt.setString(4, userID);
-            stmt.executeUpdate();
-        }
+@RestController
+public class RegistrationController {
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/register")
+    public String registerUser(@RequestParam String username, @RequestParam String password) {
+        userService.register(username, password);
+        return "User registered successfully!";
+    }
+}
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    public void like(Connection conn, String userID) throws SQLException {
-        String query = "INSERT INTO Likes (userID, postID) VALUES (?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, userID);
-            stmt.setString(2, this.postID);
-            stmt.executeUpdate();
-        }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable() // Disable CSRF for simplicity, consider enabling it in a production environment
+            .authorizeRequests()
+                .antMatchers("/register").permitAll() // Allow registration without authentication
+                .anyRequest().authenticated()
+            .and().httpBasic(); // Enable basic authentication
     }
-
-    // Existing methods...
 }
