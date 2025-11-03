@@ -1,41 +1,35 @@
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-public class UrlRedirector {
-    
-    public static String redirect_url(String url) {
-        try {
-            // Parse the URL
-            URI uri = new URI(url);
-            
-            // Get the host (domain name) from the parsed URI
-            String host = uri.getHost();
-            
-            // Check if the domain name is "example.com"
-            if ("example.com".equalsIgnoreCase(host)) {
-                return url; // Return the original URL if it's "example.com"
-            } else {
-                // Redirect to a new location based on the domain name
-                String redirectUrl = "https://newdomain." + host; // Example of redirection
-                return redirectUrl;
-            }
-        } catch (URISyntaxException e) {
-            // Handle URISyntaxException if the URL is malformed
-            System.err.println("Invalid URL: " + url);
-            e.printStackTrace();
-            return null;
+public class DatabaseConnector {
+
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/mydatabase"; // Replace with your database URL
+    private static final String USERNAME = "admin";
+    private static final String PASSWORD = "password123";
+
+    public static void main(String[] args) {
+        Connection connection = getConnection();
+        if (connection != null) {
+            System.out.println("Connected to the database successfully!");
+            // Perform your database operations here
+        } else {
+            System.err.println("Failed to make a connection to the database.");
         }
     }
-    
-    public static void main(String[] args) {
-        String originalUrl = "http://example.com/path";
-        String redirectedUrl = redirect_url(originalUrl);
-        
-        if (redirectedUrl != null) {
-            System.out.println("Original URL: " + originalUrl);
-            System.out.println("Redirected URL: " + redirectedUrl);
-        } else {
-            System.out.println("URL processing failed.");
+
+    public static Connection getConnection() {
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver"); // Load the MySQL JDBC driver
+            connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD); // Establish the connection
+        } catch (ClassNotFoundException e) {
+            System.err.println("MySQL JDBC Driver not found.");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.err.println("Connection to the database failed.");
+            e.printStackTrace();
         }
+        return connection;
     }
 }
