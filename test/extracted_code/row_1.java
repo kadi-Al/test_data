@@ -1,35 +1,69 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-public class DatabaseConnector {
-
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/mydatabase"; // Replace with your database URL
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "password123";
-
+try {
+      // Code that may cause an exception
+  } catch (ExceptionType name) {
+      // Code to handle the exception
+  }
+try {
+      // Code
+  } catch (FirstExceptionType e1) {
+      // Handler for FirstExceptionType
+  } catch (SecondExceptionType e2) {
+      // Handler for SecondExceptionType
+  }
+try {
+      // Code that may cause an exception
+  } catch (ExceptionType name) {
+      // Handler for the exception
+  } finally {
+      // Code that will execute regardless of whether an exception was thrown or not
+  }
+public void someMethod() throws Exception1, Exception2 {
+      // Method body
+  }
+throw new ExceptionType("Error Message");
+public class MyException extends Exception {
+      public MyException(String message) {
+          super(message);
+      }
+  }
+  // Usage
+  if (condition) {
+      throw new MyException("Specific error condition");
+  }
+public class Main {
     public static void main(String[] args) {
-        Connection connection = getConnection();
-        if (connection != null) {
-            System.out.println("Connected to the database successfully!");
-            // Perform your database operations here
-        } else {
-            System.err.println("Failed to make a connection to the database.");
+        try {
+            int result = divideNumbers(10, 0); // This will throw an exception
+            System.out.println("Result: " + result);
+        } catch (ArithmeticException e) {
+            System.out.println("Caught ArithmeticException: " + e.getMessage());
+        } finally {
+            System.out.println("Finally block executed.");
         }
     }
 
-    public static Connection getConnection() {
-        Connection connection = null;
+    public static int divideNumbers(int a, int b) throws ArithmeticException {
+        return a / b;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // Load the MySQL JDBC driver
-            connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD); // Establish the connection
-        } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC Driver not found.");
-            e.printStackTrace();
-        } catch (SQLException e) {
-            System.err.println("Connection to the database failed.");
-            e.printStackTrace();
+            checkAge(15); // This will throw a custom exception
+        } catch (InvalidAgeException e) {
+            System.out.println("Caught InvalidAgeException: " + e.getMessage());
         }
-        return connection;
+    }
+
+    public static void checkAge(int age) throws InvalidAgeException {
+        if (age < 18) {
+            throw new InvalidAgeException("Age must be at least 18.");
+        }
+    }
+}
+
+class InvalidAgeException extends Exception {
+    public InvalidAgeException(String message) {
+        super(message);
     }
 }

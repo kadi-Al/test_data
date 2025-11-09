@@ -1,32 +1,57 @@
-import java.util.Random;
-import java.text.DecimalFormat;
+import java.util.Scanner;
 
-public class RandomFloatFormatting {
+public class MonthValidator {
     public static void main(String[] args) {
-        // Create a random number generator
-        Random random = new Random();
+        Scanner scanner = new Scanner(System.in);
         
-        // Generate three random floats
-        float float1 = random.nextFloat() * 100;  // between 0 and 100
-        float float2 = random.nextFloat() * 100;  // between 0 and 100
-        float float3 = random.nextFloat() * 100;  // between 0 and 100
+        // Prompt the user to enter a month number
+        System.out.print("Enter the month number (1-12): ");
+        int monthNumber = scanner.nextInt();
         
-        // Create a DecimalFormat object to format the floats into strings with two decimal places
-        DecimalFormat df = new DecimalFormat("#.##");
+        // Validate the input month number
+        if (monthNumber < 1 || monthNumber > 12) {
+            System.out.println("Invalid month number! Please enter a number between 1 and 12.");
+        } else {
+            switch (monthNumber) {
+                case 1:
+                    System.out.println("January");
+                    break;
+                case 2:
+                    System.out.println("February");
+                    break;
+                case 3:
+                    System.out.println("March");
+                    break;
+                case 4:
+                    System.out.println("April");
+                    break;
+                case 5:
+                    System.out.println("May");
+                    break;
+                case 6:
+                    System.out.println("June");
+                    break;
+                case 7:
+                    System.out.println("July");
+                    break;
+                case 8:
+                    System.out.println("August");
+                    break;
+                case 9:
+                    System.out.println("September");
+                    break;
+                case 10:
+                    System.out.println("October");
+                    break;
+                case 11:
+                    System.out.println("November");
+                    break;
+                case 12:
+                    System.out.println("December");
+                    break;
+            }
+        }
         
-        // Format the floats into strings using the DecimalFormat
-        String formattedFloat1 = df.format(float1);
-        String formattedFloat2 = df.format(float2);
-        String formattedFloat3 = df.format(float3);
-        
-        // Store the formatted strings in variables
-        String floatString1 = "Random Float 1: " + formattedFloat1;
-        String floatString2 = "Random Float 2: " + formattedFloat2;
-        String floatString3 = "Random Float 3: " + formattedFloat3;
-        
-        // Print the formatted strings to console
-        System.out.println(floatString1);
-        System.out.println(floatString2);
-        System.out.println(floatString3);
+        scanner.close();
     }
 }

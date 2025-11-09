@@ -1,37 +1,40 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-public class UserInfo {
+public class ArrayScreener {
     public static void main(String[] args) {
-        // Create a ProcessBuilder to execute the 'whoami' command on Unix/Linux or 'echo %username%' on Windows
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.contains("win")) {
-            // For Windows, use the whoami command to get the username
-            processBuilder.command("cmd.exe", "/c", "echo %username%");
-        } else {
-            // For Unix/Linux, use the whoami command to get the username
-            processBuilder.command("sh", "-c", "whoami");
+        int[] arr = {4, 2, 10, 15, 8, 7};
+        int K = 9;
+        screenArray(arr, K);
+    }
+
+    public static void screenArray(int[] arr, int K) {
+        if (arr == null || arr.length == 0) {
+            System.out.println("The array is empty.");
+            return;
         }
         
-        try {
-            // Start the process
-            Process process = processBuilder.start();
-            
-            // Read the output of the process
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String result = reader.readLine();
-            
-            if (result != null) {
-                System.out.println("User information: " + result);
+        if (arr.length == 1 && arr[0] % K != 0) {
+            System.out.println("The array has only one element and it does not satisfy the condition.");
+            return;
+        }
+        
+        boolean found = false;
+        for (int num : arr) {
+            if (num % K == 0) {
+                System.out.println(num + " satisfies the condition.");
+                found = true;
             } else {
-                System.out.println("No user information found.");
+                System.out.println(num + " does not satisfy the condition.");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+        
+        if (!found && arr.length > 1) {
+            System.out.println("No element in the array satisfies the condition.");
         }
     }
 }
+4 does not satisfy the condition.
+2 does not satisfy the condition.
+10 satisfies the condition.
+15 does not satisfy the condition.
+8 does not satisfy the condition.
+7 does not satisfy the condition.
+No element in the array satisfies the condition.

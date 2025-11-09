@@ -1,96 +1,48 @@
 xml
 <dependencies>
     <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-core_2.12</artifactId>
+        <version>3.0.1</version>
     </dependency>
     <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-aws</artifactId>
+        <version>3.3.1</version>
     </dependency>
 </dependencies>
-package com.example.upload;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
+import java.util.Arrays;
+import java.util.List;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import org.apache.spark.storage.StorageLevel;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.File;
-import java.io.IOException;
-
-@SpringBootApplication
-public class UploadApplication {
+public class SparkS3Example {
     public static void main(String[] args) {
-        SpringApplication.run(UploadApplication.class, args);
-    }
-}
+        // Initialize Spark Context
+        JavaSparkContext sc = new JavaSparkContext("local", "Spark S3 Example", System.getenv("SPARK_HOME"));
 
-@RestController
-class FileUploadController {
-    @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file) throws IOException {
-        if (!file.isEmpty()) {
-            byte[] bytes = file.getBytes();
-            // Specify the directory where you want to save the uploaded files
-            File dir = new File("./uploads");
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            File serverFile = new File(dir.getAbsolutePath() + File.separator + file.getOriginalFilename());
-            java.nio.file.Files.write(serverFile.toPath(), bytes);
-            return "You successfully uploaded '" + file.getOriginalFilename() + "'";
-        } else {
-            return "File is empty!";
-        }
-    }
-}
-public class Person {
-    private String name;
-    private int age;
+        // Set AWS credentials and region
+        DefaultAWSCredentialsProviderChain awsCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
+        sc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+        sc.hadoopConfiguration().set("fs.s3a.access.key", awsCredentialsProvider.getCredentials().getAWSAccessKeyId());
+        sc.hadoopConfiguration().set("fs.s3a.secret.key", awsCredentialsProvider.getCredentials().getAWSSecretKey());
+        sc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.amazonaws.com");
+        sc.hadoopConfiguration().set("fs.s3a.region", Regions.US_EAST_1.getName());
 
-    // Constructor
-    public Person(String name, int age) {
-        this.name = name;
-        this.age = age;
-    }
+        // Example data - in a real application, you would read from multiple S3 buckets here
+        List<Tuple2<String, Integer>> data = Arrays.asList(new Tuple2<>("foo", 1), new Tuple2<>("bar", 2), new Tuple2<>("foo", 3));
+        JavaPairRDD<String, Integer> rdd = sc.parallelizePairs(data);
 
-    // Setter for name
-    public void setName(String name) {
-        this.name = name;
-    }
+        // Perform reduceByKey operation with a custom lambda function
+        JavaPairRDD<String, Integer> result = rdd.reduceByKey((a, b) -> a + b);
 
-    // Getter for name
-    public String getName() {
-        return name;
-    }
+        // Save the result back to S3 (or any Hadoop-compatible storage)
+        result.saveAsTextFile("s3a://your-bucket/output");
 
-    // Setter for age
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    // Getter for age
-    public int getAge() {
-        return age;
-    }
-}
-public class Main {
-    public static void main(String[] args) {
-        // Create a new Person object with name "Alice" and age 30
-        Person alice = new Person("Alice", 30);
-
-        // Print the person's details
-        System.out.println("Name: " + alice.getName());
-        System.out.println("Age: " + alice.getAge());
-
-        // Update the person's name to "Bob" and age to 25
-        alice.setName("Bob");
-        alice.setAge(25);
-
-        // Print the updated details
-        System.out.println("Updated Name: " + alice.getName());
-        System.out.println("Updated Age: " + alice.getAge());
+        sc.stop();
     }
 }
