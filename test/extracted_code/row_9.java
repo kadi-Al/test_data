@@ -1,30 +1,23 @@
-package com.example.demo.model;
+\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport java.util.Date;\n\npublic class Main{\n    public static void main(String[] args){\n        try{\n            String oldDateString = \"5 January, 2020\";\n            SimpleDateFormat oldDateFormat = new SimpleDateFormat(\"dd MM yyyy\");\n            Date oldDate = oldDateFormat.parse(oldDateString);\n            \n            SimpleDateFormat newDateFormat = new SimpleDateFormat(\"MM/dd/yyyy\");\n            String newDateString = newDateFormat.format(oldDate);\n            \n            System.out.println(newDateString);\n        }catch(ParseException e){\n            e.printStackTrace();\n        }\n   }\n}\n
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-public class Payload {
-    private String name;
-
-    // Getters and setters (or use Lombok to avoid boilerplate code)
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-}
-package com.example.demo.controller;
-
-import com.example.demo.model.Payload;
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/api")
-public class ApiController {
-
-    @PostMapping(value = "/payload", consumes = "application/json")
-    public String handlePayload(@RequestBody Payload payload) {
-        return payload.getName(); // Return the name from the deserialized object
+public class Main {
+    public static void main(String[] args) {
+        try {
+            String oldDateString = "5 January 2020";
+            SimpleDateFormat oldDateFormat = new SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH); // Corrected format
+            Date oldDate = oldDateFormat.parse(oldDateString);
+            
+            SimpleDateFormat newDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            String newDateString = newDateFormat.format(oldDate);
+            
+            System.out.println(newDateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 }
-bash
-curl -X POST http://localhost:8080/api/payload -H "Content-Type: application/json" -d '{"name":"John Doe"}'
+01/05/2020
